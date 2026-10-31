@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>寶可夢加傲樂 - 300張卡序與交換功能模擬器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background: #090912;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .cabinet {
+            width: 100%;
+            max-width: 600px;
+            height: 100vh;
+            max-height: 950px;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            border: 4px solid #ffcc00;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 12px;
+            box-shadow: 0 0 35px rgba(255, 204, 0, 0.4);
+            position: relative;
+        }
+        header {
+            text-align: center;
+            border-bottom: 2px dashed #ffcc00;
+            padding-bottom: 6px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 20px;
+            color: #ffcc00;
+            text-shadow: 2px 2px #ff3366;
+        }
+        .arcade-screen {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.75);
+            border: 3px solid #00d2ff;
+            border-radius: 12px;
+            margin: 8px 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 15px rgba(0, 210, 255, 0.3);
+        }
+        .wild-area {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .wild-poke {
+            text-align: center;
+        }
+        .card-img-placeholder {
+            width: 70px;
+            height: 90px;
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            border: 2px solid #fff;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 11px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            margin: 0 auto 4px auto;
+        }
+        .hp-bar-container {
+            width: 80px;
+            height: 8px;
+            background: #444;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid #aaa;
+            margin: 0 auto;
+        }
+        .hp-bar {
+            width: 100%;
+            height: 100%;
+            background: #2ecc71;
+            transition: width 0.3s ease;
+        }
+        .message-box {
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid #ffcc00;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            color: #ffcc00;
+            font-weight: bold;
+            min-height: 55px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 1px 1px #000;
+        }
+        /* 橢圓形卡匣設計 */
+        .player-disk-zone {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .gaole-oval-disk {
+            width: 160px;
+            height: 105px;
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            border: 4px solid #fff;
+            border-radius: 52px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .disk-grade {
+            background: #111;
+            color: #ffcc00;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 1px 6px;
+            border-radius: 10px;
+            border: 1px solid #ffcc00;
+            margin-bottom: 2px;
+        }
+        .disk-name {
+            font-size: 15px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 1px 1px #000;
+        }
+        .disk-move {
+            font-size: 11px;
+            color: #e3f2fd;
+            background: rgba(0,0,0,0.4);
+            padding: 1px 8px;
+            border-radius: 6px;
+            margin-top: 2px;
+        }
+        .control-panel {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid #ffcc00;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+        }
+        .btn-row {
+            display: flex;
+            gap: 8px;
+        }
+        .btn {
+            flex: 1;
+            background: linear-gradient(to bottom, #00c6ff, #0072ff);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            padding: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px #003399;
+            text-align: center;
+        }
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 #003399;
+        }
+        .btn-action {
+            background: linear-gradient(to bottom, #f12711, #f5af19);
+            box-shadow: 0 4px #993300;
+        }
+        .btn-action:active {
+            box-shadow: 0 0 #993300;
+        }
+        .btn-trade {
+            background: linear-gradient(to bottom, #8e44ad, #9b59b6);
+            box-shadow: 0 4px #512e5f;
+        }
+        .btn-trade:active {
+            box-shadow: 0 0 #512e5f;
+        }
+        input[type="number"], input[type="password"] {
+            background: #111;
+            border: 2px solid #ffcc00;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 15px;
+            padding: 6px;
+            text-align: center;
+            width: 110px;
+            outline: none;
+        }
+        .lock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 12, 41, 0.95);
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            z-index: 10;
+            padding: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cabinet">
+        <header>
+            <h1>⚡ 寶可夢加傲樂 - 卡序與交換模擬器 ⚡</h1>
+            <div style="font-size: 11px; color: #aaa;" id="phaseIndicator">階段：等待掃描卡序</div>
+        </header>
+
+        <div class="arcade-screen">
+            <div>
+                <div style="font-size: 11px; color: #00d2ff; margin-bottom: 4px;">【遭遇野生寶可夢】</div>
+                <div class="wild-area">
+                    <div class="wild-poke">
+                        <div class="card-img-placeholder" id="wildName1">烈空坐</div>
+                        <div class="hp-bar-container"><div class="hp-bar" id="wildHp1"></div></div>
+                        <div style="font-size: 10px; color: #ffcc00; margin-top: 2px;">Grade 5</div>
+                    </div>
+                    <div class="wild-poke">
+                        <div class="card-img-placeholder" id="wildName2">超夢</div>
+                        <div class="hp-bar-container"><div class="hp-bar" id="wildHp2"></div></div>
+                        <div style="font-size: 10px; color: #ffcc00; margin-top: 2px;">Grade 5</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="message-box" id="gameMessage">
+                請輸入 1～300 的卡序（預設 #1 為草抓五星「草噴」妙蛙花），點擊下方按鈕開始對戰！[span_0](start_span)[span_0](end_span)
+            </div>
+
+            <div>
+                <div style="font-size: 11px; color: #38ef7d; margin-bottom: 4px; text-align: right;">【我方出戰橢圓卡匣】</div>
+                <div class="player-disk-zone">
+                    <div class="gaole-oval-disk" id="diskStyle">
+                        <div class="disk-grade" id="playerGrade">Grade 5</div>
+                        <div class="disk-name" id="playerName">妙蛙花</div>
+                        <div class="disk-move" id="playerMove">招式：強力草之全方位噴射 (草噴)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-panel" id="controlPanelArea">
+            <div class="lock-overlay" id="lockOverlay">
+                <div style="font-size: 15px; color: #ffcc00; font-weight: bold;">🔒 店員卡序控制台 (已上鎖)</div>
+                <div style="font-size: 11px; color: #aaa;">預設店員密碼: 1234</div>
+                <div style="display: flex; gap: 8px;">
+                    <input type="password" id="pwdInput" placeholder="輸入密碼" maxlength="6">
+                    <button class="btn" onclick="verifyPassword()">解鎖</button>
+                </div>
+                <div id="pwdError" style="font-size: 11px; color: #ff3366; display: none;">密码错误！</div>
+            </div>
+
+            <div class="btn-row" id="actionButtonRow">
+                <button class="btn btn-action" id="mainActionBtn" onclick="nextPhase()">⚔️ 開始對戰並攻擊</button>
+                <button class="btn btn-trade" onclick="triggerTradeEvent()">🔄 觸發交換寶可夢</button>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 8px; margin-top: 4px;">
+                <div style="font-size: 11px; color: #aaa;">卡序輸入 (1~300):</div>
+                <div style="display: flex; gap: 6px;">
+                    <input type="number" id="seqInput" value="1" placeholder="卡序" min="1" max="300" style="width: 90px; padding: 4px;" onchange="loadCardBySeq()">
+                    <button class="btn" style="padding: 4px 10px; font-size: 13px;" onclick="loadCardBySeq()">讀取卡序</button>
+                    <button class="btn" style="padding: 4px 8px; font-size: 12px; background: #333;" onclick="lockPanel()" title="上鎖">🔒</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORE_PASSWORD = "1234";
+        let currentPhase = 0;
+
+        // 300 張卡序資料庫邏輯
+        function getCardBySequence(seq) {
+            let name = `寶可夢 #${seq}`;
+            let grade = "Grade 3";
+            let type = "一般屬性";
+            let move = "強力衝撞";
+            let color = "linear-gradient(135deg, #3a6073, #16222a)";
+
+            // 一開始那三個草抓到五星 -> 設定為草噴
+            if (seq === 1 || seq === 2 || seq === 3) {
+                name = seq === 1 ? "妙蛙花" : (seq === 2 ? "蜥蜴王" : "君主蛇");
+                grade = "Grade 5";
+                type = "草屬性";
+                move = "強力草之全方位噴射 (草噴)";[span_1](start_span)[span_1](end_span)
+                color = "linear-gradient(135deg, #11998e, #38ef7d)";
+            } else if (seq <= 50) {
+                grade = "Grade 5";
+                name = `傳說寶可夢 #${seq}`;
+                move = "終極極光波";
+                color = "linear-gradient(135deg, #f12711, #f5af19)";
+            } else if (seq <= 150) {
+                grade = "Grade 4";
+                name = `強力寶可夢 #${seq}`;
+                move = "元素破壞光線";
+                color = "linear-gradient(135deg, #2193b0, #6dd5ed)";
+            } else {
+                grade = "Grade 3";
+                name = `精選寶可夢 #${seq}`;
+                move = "連續爪擊";
+                color = "linear-gradient(135deg, #8e44ad, #c0392b)";
+            }
+
+            return { seq, name, grade, type, move, color };
+        }
+
+        let activeCard = getCardBySequence(1);
+
+        function verifyPassword() {
+            const val = document.getElementById('pwdInput').value;
+            if (val === STORE_PASSWORD) {
+                document.getElementById('lockOverlay').style.display = 'none';
+                document.getElementById('pwdInput').value = '';
+                document.getElementById('pwdError').style.display = 'none';
+            } else {
+                document.getElementById('pwdError').style.display = 'block';
+            }
+        }
+
+        function lockPanel() {
+            document.getElementById('lockOverlay').style.display = 'flex';
+        }
+
+        function loadCardBySeq() {
+            const seq = parseInt(document.getElementById('seqInput').value);
+            if (!seq || seq < 1 || seq > 300) {
+                alert("請輸入有效的卡序代碼 (1 ~ 300)！");
+                return;
+            }
+            activeCard = getCardBySequence(seq);
+            updateCardDisplay();
+            document.getElementById('gameMessage').innerText = `🛠️ [卡序連動] 已切換至卡序 #${activeCard.seq}：【${activeCard.name}】(${activeCard.grade})，招式：${activeCard.move}！`;
+        }
+
+        function updateCardDisplay() {
+            document.getElementById('playerName').innerText = activeCard.name;
+            document.getElementById('playerGrade').innerText = activeCard.grade;
+            document.getElementById('playerMove').innerText = `招式：${activeCard.move}`;
+            document.getElementById('diskStyle').style.background = activeCard.color;
+        }
+
+        // 觸發「交換寶可夢」事件
+        function triggerTradeEvent() {
+            // 隨機抽選另外一張不同卡序的卡片作為交換對象
+            const randomSeq = Math.floor(Math.random() * 300) + 1;
+            const tradedCard = getCardBySequence(randomSeq);
+            activeCard = tradedCard;
+            
+            // 更新輸入框與畫面
+            document.getElementById('seqInput').value = activeCard.seq;
+            updateCardDisplay();
+
+            // 播放特效文字提示
+            const msgBox = document.getElementById('gameMessage');
+            msgBox.innerHTML = `✨ <b>【寶可夢交換發生！】</b> ✨<br>神秘訓練家出現，跟你交換成了卡序 #${activeCard.seq} 的【${activeCard.name}】(${activeCard.grade})！`;
+        }
+
+        function nextPhase() {
+            currentPhase = (currentPhase + 1) % 4;
+            const msgBox = document.getElementById('gameMessage');
+            const phaseInd = document.getElementById('phaseIndicator');
+            const actionBtn = document.getElementById('mainActionBtn');
+
+            if (currentPhase === 1) {
+                phaseInd.innerText = "階段 1：對戰攻擊中";
+                msgBox.innerHTML = `⚔️ 卡序 #${activeCard.seq} 參戰！使出 <b>${activeCard.move}</b>！<br>對野生寶可夢造成巨大傷害！`;
+                document.getElementById('wildHp1').style.width = '25%';
+                document.getElementById('wildHp2').style.width = '35%';
+                actionBtn.innerText = "⚡ 進行連打蓄力";
+            } 
+            else if (currentPhase === 2) {
+                phaseInd.innerText = "階段 2：投擲寶貝球";
+                msgBox.innerText = `🔥 蓄力完成！準備投出寶貝球捕捉野生寶可夢！`;
+                actionBtn.innerText = "🔴 投出特級球抓寶";
+            } 
+            else if (currentPhase === 3) {
+                phaseInd.innerText = "階段 3：卡匣掉落結算";
+                msgBox.innerText = `🎉 捕獲成功！卡序 #${activeCard.seq} 【${activeCard.name}】 實體橢圓卡匣掉落！`;
+                actionBtn.innerText = "🔄 換下一張卡序";
+            } 
+            else {
+                phaseInd.innerText = "階段 0：等待掃描卡序";
+                msgBox.innerText = "請輸入 1～300 的卡序，點擊下方按鈕開始對戰！";
+                actionBtn.innerText = "⚔️ 開始對戰並攻擊";
+            }
+        }
+    </script>
+</body>
+</html>
